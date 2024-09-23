@@ -1,0 +1,51 @@
+[{
+  "_id": {
+    "$oid": "66e9e3f8fd4b3a74c70995b2"
+  },
+  "TIN": "9005212005-25",
+  "RegisteredName": "DESARROLLADORES INDEPENDIENTES SAS",
+  "Address": "cra 50 #42-60",
+  "City": "Medellin",
+  "State": "Antioquia",
+  "Email": "developer.alex@example.com",
+  "IsActive": true,
+  "CreationDate": {
+    "$date": "2024-09-17T20:17:48.096Z"
+  },
+  "CreateByContact": "66e948bc4c70181678bd47e2",
+  "EmailContact": "alex@example.com"
+},
+{
+  "_id": {
+    "$oid": "66e9e46ffd4b3a74c70995b3"
+  },
+  "TIN": "900621005-15",
+  "RegisteredName": "Inmobiliaria Hernandez sas",
+  "Address": "cra 45 #78-50",
+  "City": "Medellin",
+  "State": "Antioquia",
+  "Email": "inmobiliaria-hernandez@example.com",
+  "IsActive": true,
+  "CreationDate": {
+    "$date": "2024-09-17T20:19:59.071Z"
+  },
+  "CreateByContact": "66e948bc4c70181678bd47e2",
+  "EmailContact": "alex@example.com"
+},
+{
+  "_id": {
+    "$oid": "66e9e4c9fd4b3a74c70995b4"
+  },
+  "TIN": "9015822110-13",
+  "RegisteredName": "FERRETERIA POSADA SAS",
+  "Address": "cra 50 #7-10",
+  "City": "Medellin",
+  "State": "Antioquia",
+  "Email": "ferreteria-posada@example.com",
+  "IsActive": true,
+  "CreationDate": {
+    "$date": "2024-09-17T20:21:29.890Z"
+  },
+  "CreateByContact": "66e948bc4c70181678bd47e2",
+  "EmailContact": "alex@example.com"
+}]
