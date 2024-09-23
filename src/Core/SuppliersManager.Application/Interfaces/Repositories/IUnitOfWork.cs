@@ -8,6 +8,8 @@ namespace SuppliersManager.Application.Interfaces.Repositories
     {
         IRepositoryAsync<T> Repository<T>() where T : BaseEntity;
 
+        Task DetectChanges();
+
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 
         Task CommitTransaction();

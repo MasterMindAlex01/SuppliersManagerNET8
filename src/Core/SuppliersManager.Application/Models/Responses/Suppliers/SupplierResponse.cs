@@ -1,4 +1,6 @@
 ﻿
+using MongoDB.Bson;
+
 namespace SuppliersManager.Application.Models.Responses.Suppliers
 {
     public class SupplierResponse

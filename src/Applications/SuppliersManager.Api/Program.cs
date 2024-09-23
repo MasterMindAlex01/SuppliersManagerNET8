@@ -1,7 +1,7 @@
 using SuppliersManager.Api.Configurations;
 using SuppliersManager.Api.Extensions;
 using SuppliersManager.Application.Extensions;
-using SuppliersManager.Infrastructure.MongoDBDriver.Extensions;
+using SuppliersManager.Infrastructure.MongoDbEF.Extensions;
 
 namespace SuppliersManager.Api
 {
@@ -19,13 +19,11 @@ namespace SuppliersManager.Api
 
             // Add services to the container.
             builder.Services.AddCurrentUserService();
-
-            MongoMappingConfig.RegisterMappings();
             
             builder.Services.AddSettings(builder.Configuration);
             
             //AddDatabase
-            builder.Services.AddMongoDatabase();
+            builder.Services.AddMongoDatabase(builder.Configuration);
 
             //Configurations Application Layer
             builder.Services.AddApplicationLayer();

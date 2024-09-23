@@ -1,4 +1,5 @@
-﻿using SuppliersManager.Application.Features.Suppliers.Commands;
+﻿using MongoDB.Bson;
+using SuppliersManager.Application.Features.Suppliers.Commands;
 using SuppliersManager.Application.Interfaces.Repositories;
 using SuppliersManager.Application.Interfaces.Services;
 using SuppliersManager.Application.Models.Responses.Suppliers;
@@ -41,15 +42,23 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Services
             
             await _unitOfWork.Repository<Supplier>().AddAsync(supplier);
 
-            return await Result<string>.SuccessAsync(supplier.Id, "Supplier created");
+            await _unitOfWork.DetectChanges();
+
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
+
+            return await Result<string>.SuccessAsync(supplier.Id.ToString(), "Supplier created");
         }
 
         public async Task<IResult> DeleteAsync(string id)
         {
-            var currentSupplier = await _unitOfWork.Repository<Supplier>().GetByIdAsync(id);
+            var currentSupplier = await _unitOfWork.Repository<Supplier>().GetByIdAsync(new ObjectId( id));
             if (currentSupplier == null) return await Result.FailAsync("Supplier not found");
 
             await _unitOfWork.Repository<Supplier>().DeleteAsync(currentSupplier);
+
+            await _unitOfWork.DetectChanges();
+
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
 
             return await Result.SuccessAsync("Supplier deleted");
         }
@@ -61,11 +70,11 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Services
 
         public async Task<IResult<SupplierResponse>> GetByIdAsync(string id)
         {
-            var currentSupplier = await _unitOfWork.Repository<Supplier>().GetByIdAsync(id);
+            var currentSupplier = await _unitOfWork.Repository<Supplier>().GetByIdAsync(new ObjectId(id));
             if (currentSupplier == null) return await Result<SupplierResponse>.FailAsync("Supplier not found");
             var userResponse = new SupplierResponse()
             {
-                Id = currentSupplier.Id,
+                Id = currentSupplier.Id.ToString(),
                 Email = currentSupplier.Email,
                 RegisteredName = currentSupplier.RegisteredName,
                 State = currentSupplier.State,
@@ -79,7 +88,7 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Services
 
         public async Task<IResult> UpdateAsync(UpdateSupplierCommand command)
         {
-            var currentSupplier = await _unitOfWork.Repository<Supplier>().GetByIdAsync(command.Id);
+            var currentSupplier = await _unitOfWork.Repository<Supplier>().GetByIdAsync(new ObjectId(command.Id));
             if (currentSupplier == null) return await Result.FailAsync("Supplier not found");
 
             currentSupplier.Email = command.Email;
@@ -90,6 +99,10 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Services
             currentSupplier.IsActive = command.IsActive;
 
             await _unitOfWork.Repository<Supplier>().UpdateAsync(currentSupplier);
+
+            await _unitOfWork.DetectChanges();
+
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
 
             return await Result.SuccessAsync("Supplier updated");
         }

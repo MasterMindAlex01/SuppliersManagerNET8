@@ -1,5 +1,4 @@
-﻿
-using SuppliersManager.Domain.Contracts;
+﻿using SuppliersManager.Domain.Contracts;
 
 namespace SuppliersManager.Domain.Entities
 {

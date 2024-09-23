@@ -1,4 +1,6 @@
-﻿using SuppliersManager.Application.Features.Users.Commands;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
+using SuppliersManager.Application.Features.Users.Commands;
 using SuppliersManager.Application.Helpers;
 using SuppliersManager.Application.Interfaces.Repositories;
 using SuppliersManager.Application.Interfaces.Services;
@@ -43,15 +45,23 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Services
 
             await _unitOfWork.Repository<User>().AddAsync(user);
 
-            return await Result<string>.SuccessAsync(user.Id,"User created");
+            await _unitOfWork.DetectChanges();
+
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
+
+            return await Result<string>.SuccessAsync(user.Id.ToString(),"User created");
         }
 
         public async Task<IResult> DeleteAsync(string id)
         {
-            var currentUser = await _unitOfWork.Repository<User>().GetByIdAsync(id);
+            var currentUser = await _unitOfWork.Repository<User>().GetByIdAsync(new ObjectId( id));
             if (currentUser == null) return await Result.FailAsync("User not found");
 
             await _unitOfWork.Repository<User>().DeleteAsync(currentUser);
+            
+            await _unitOfWork.DetectChanges();
+
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
 
             return await Result.SuccessAsync("User deleted");
         }
@@ -63,11 +73,11 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Services
 
         public async Task<IResult<UserResponse>> GetByIdAsync(string id)
         {
-            var currentUser = await _unitOfWork.Repository<User>().GetByIdAsync(id);
+            var currentUser = await _unitOfWork.Repository<User>().GetByIdAsync(new ObjectId(id));
             if (currentUser == null) return await Result<UserResponse>.FailAsync("User not found");
             var userResponse = new UserResponse()
             {
-                Id = currentUser.Id,
+                Id = currentUser.Id.ToString(),
                 Email = currentUser.Email,
                 FirstName = currentUser.FirstName,
                 LastName = currentUser.LastName,
@@ -78,7 +88,7 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Services
 
         public async Task<IResult> UpdateAsync(UpdateUserCommand command)
         {
-            var currentUser = await _unitOfWork.Repository<User>().GetByIdAsync(command.Id);
+            var currentUser = await _unitOfWork.Repository<User>().GetByIdAsync(new ObjectId(command.Id));
             if (currentUser == null) return await Result.FailAsync("User not found");
 
             currentUser.Email = command.Email;
@@ -86,7 +96,11 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Services
             currentUser.LastName = command.LastName;
 
             await _unitOfWork.Repository<User>().UpdateAsync(currentUser);
-            
+
+            await _unitOfWork.DetectChanges();
+
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
+
             return await Result.SuccessAsync("User updated");
         }
     }

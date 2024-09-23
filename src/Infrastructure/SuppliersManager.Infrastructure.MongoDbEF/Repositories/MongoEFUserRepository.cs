@@ -1,49 +1,39 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using SuppliersManager.Application.Extensions;
 using SuppliersManager.Application.Interfaces.Repositories;
 using SuppliersManager.Application.Models.Responses.Users;
 using SuppliersManager.Domain.Entities;
+using SuppliersManager.Infrastructure.MongoDbEF.Contexts;
 using SuppliersManager.Shared.Wrapper;
 
 namespace SuppliersManager.Infrastructure.MongoDbEF.Repositories
 {
     public class MongoEFUserRepository : IUserRepository
     {
-        private readonly IMongoCollection<User> _collection;
+        private readonly ApplicationMongoDbContext _dbContext;
 
-        public MongoEFUserRepository(IMongoDatabase database)
+        public MongoEFUserRepository(ApplicationMongoDbContext dbContext)
         {
-            _collection = database.GetCollection<User>("users");
+            _dbContext = dbContext;
         }
 
-        public async Task<User> GetUserByUserNameAsync(string username)
+        public async Task<User?> GetUserByUserNameAsync(string username)
         {
-            return await _collection.Find(x => x.UserName == username).FirstOrDefaultAsync();
+            return await _dbContext.Users.Where(x => x.UserName == username).AsNoTracking().FirstOrDefaultAsync();
         }
 
         public async Task<PaginatedResult<UserResponse>> GetPagedResponseAsync(int pageNumber, int pageSize)
         {
-            var paged =  await _collection.Find(_ => true).ToPaginatedListAsync(pageNumber, pageSize);
-            
-            var list =  paged.Data.Select(x => new UserResponse
+            return  await _dbContext.Users.Select(x => new UserResponse
             {
-                Id = x.Id,
+                Id = x.Id.ToString(),
                 Email = x.Email,
                 FirstName = x.FirstName,
                 LastName = x.LastName,
                 UserName = x.UserName
-            }).ToList();
-
-            return new PaginatedResult<UserResponse>(list)
-            {
-                CurrentPage = paged.CurrentPage,
-                PageSize = paged.PageSize,
-                Messages = paged.Messages,
-                Succeeded = paged.Succeeded,
-                TotalCount = paged.TotalCount,
-                TotalPages = paged.TotalPages,
-                
-            };
+            }).AsNoTracking().ToPaginatedListAsync(pageNumber, pageSize);
+           
         }
     }
 }

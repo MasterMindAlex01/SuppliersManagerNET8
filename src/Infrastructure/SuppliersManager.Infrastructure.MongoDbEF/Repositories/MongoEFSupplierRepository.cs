@@ -1,27 +1,26 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.EntityFrameworkCore;
 using SuppliersManager.Application.Extensions;
 using SuppliersManager.Application.Interfaces.Repositories;
 using SuppliersManager.Application.Models.Responses.Suppliers;
-using SuppliersManager.Domain.Entities;
+using SuppliersManager.Infrastructure.MongoDbEF.Contexts;
 using SuppliersManager.Shared.Wrapper;
 
 namespace SuppliersManager.Infrastructure.MongoDbEF.Repositories
 {
     public class MongoEFSupplierRepository : ISupplierRepository
     {
-        private readonly IMongoCollection<Supplier> _collection;
+        private readonly ApplicationMongoDbContext _dbContext;
 
-        public MongoEFSupplierRepository(IMongoDatabase database)
+        public MongoEFSupplierRepository(ApplicationMongoDbContext dbContext)
         {
-            _collection = database.GetCollection<Supplier>("suppliers");
+            _dbContext = dbContext;
         }
+        
         public async Task<PaginatedResult<SupplierResponse>> GetPagedResponseAsync(int pageNumber, int pageSize)
         {
-            var paged = await _collection.Find(_ => true).ToPaginatedListAsync(pageNumber, pageSize);
-
-            var list = paged.Data.Select(x => new SupplierResponse
+            return await _dbContext.Suppliers.Select(x => new SupplierResponse
             {
-                Id = x.Id,
+                Id = x.Id.ToString(),
                 Email = x.Email,
                 Address = x.Address,
                 City = x.City,
@@ -29,18 +28,8 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Repositories
                 TIN = x.TIN,
                 State = x.State,
                 RegisteredName = x.RegisteredName,
-            }).ToList();
+            }).AsNoTracking().ToPaginatedListAsync(pageNumber, pageSize);
 
-            return new PaginatedResult<SupplierResponse>(list)
-            {
-                CurrentPage = paged.CurrentPage,
-                PageSize = paged.PageSize,
-                Messages = paged.Messages,
-                Succeeded = paged.Succeeded,
-                TotalCount = paged.TotalCount,
-                TotalPages = paged.TotalPages,
-
-            };
         }
     }
 }

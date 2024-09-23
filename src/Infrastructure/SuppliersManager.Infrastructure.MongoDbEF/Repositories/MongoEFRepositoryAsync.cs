@@ -1,45 +1,52 @@
-﻿
-
+﻿using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using SuppliersManager.Application.Interfaces.Repositories;
 using SuppliersManager.Domain.Contracts;
+using SuppliersManager.Infrastructure.MongoDbEF.Contexts;
 
 namespace SuppliersManager.Infrastructure.MongoDbEF.Repositories
 {
     public class MongoEFRepositoryAsync<T> : IRepositoryAsync<T> where T : BaseEntity
     {
-        private readonly IMongoCollection<T> _collection;
+        private readonly ApplicationMongoDbContext _dbContext;
 
-        public MongoEFRepositoryAsync(IMongoDatabase database)
+        public MongoEFRepositoryAsync(ApplicationMongoDbContext dbContext)
         {
-            string className = typeof(T).Name.ToLower() + "s";
-            _collection = database.GetCollection<T>(className);
+            _dbContext = dbContext;
         }
+
+        public IQueryable<T> Entities => _dbContext.Set<T>();
 
         public async Task<T> AddAsync(T entity)
         {
-            await _collection.InsertOneAsync(entity);
+            await _dbContext.Set<T>().AddAsync(entity);
             return entity;
         }
 
-        public async Task DeleteAsync(T entity)
+        public Task DeleteAsync(T entity)
         {
-            await _collection.DeleteOneAsync(x => x.Id == entity.Id);
+            _dbContext.Set<T>().Remove(entity);
+            return Task.CompletedTask;
         }
 
         public async Task<List<T>> GetAllAsync()
         {
-            return await _collection.Find(_ => true).ToListAsync();
+            return await _dbContext
+                .Set<T>()
+                .ToListAsync();
         }
 
-        public async Task<T> GetByIdAsync(string id)
+        public async Task<T?> GetByIdAsync(ObjectId id)
         {
-            return await _collection.Find(x => x.Id == id).FirstOrDefaultAsync();
+            return await _dbContext.Set<T>().FindAsync(id);
         }
 
-        public async Task UpdateAsync(T entity)
+        public Task UpdateAsync(T entity)
         {
-            await _collection.ReplaceOneAsync(x => x.Id == entity.Id, entity);
+            T exist = _dbContext.Set<T>().Find(entity.Id)!;
+            _dbContext.Entry(exist).CurrentValues.SetValues(entity);
+            return Task.CompletedTask;
         }
     }
 }

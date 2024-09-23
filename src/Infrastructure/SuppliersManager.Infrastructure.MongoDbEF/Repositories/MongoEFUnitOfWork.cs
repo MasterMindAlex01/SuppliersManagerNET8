@@ -1,29 +1,37 @@
 ﻿using MongoDB.Driver;
 using SuppliersManager.Application.Interfaces.Repositories;
 using SuppliersManager.Domain.Contracts;
+using SuppliersManager.Infrastructure.MongoDbEF.Contexts;
 using System.Collections;
 
 namespace SuppliersManager.Infrastructure.MongoDbEF.Repositories
 {
     public class MongoEFUnitOfWork : IUnitOfWork
     {
-        private readonly IMongoDatabase _database;
+        private readonly ApplicationMongoDbContext _dbContext;
         private bool disposed;
         private Hashtable _repositories = null!;
 
-        public MongoEFUnitOfWork(IMongoDatabase database)
+        public MongoEFUnitOfWork(ApplicationMongoDbContext dbContext)
         {
-            _database = database;
+           _dbContext = dbContext;
         }
 
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+        public Task DetectChanges()
         {
-            throw new NotImplementedException();
+            _dbContext.ChangeTracker.DetectChanges();
+            Console.WriteLine(_dbContext.ChangeTracker.DebugView.LongView);
+            return Task.CompletedTask;
         }
 
-        public Task RollbackTransaction()
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+           return await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task RollbackTransaction()
+        {
+            await _dbContext.Database.RollbackTransactionAsync();
         }
 
         public IRepositoryAsync<TEntity> Repository<TEntity>() where TEntity : BaseEntity
@@ -37,7 +45,7 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Repositories
             {
                 var repositoryType = typeof(MongoEFRepositoryAsync<>);
 
-                var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(TEntity)), _database);
+                var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(TEntity)), _dbContext);
 
                 _repositories.Add(type, repositoryInstance);
             }
@@ -45,9 +53,9 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Repositories
             return (IRepositoryAsync<TEntity>)_repositories[type]!;
         }
 
-        public Task CommitTransaction()
+        public async Task CommitTransaction()
         {
-            throw new NotImplementedException();
+            await _dbContext.Database.CommitTransactionAsync();
         }
 
         public void Dispose()
@@ -63,7 +71,7 @@ namespace SuppliersManager.Infrastructure.MongoDbEF.Repositories
                 if (disposing)
                 {
                     //dispose managed resources
-                    //_database.Dispose();
+                    _dbContext.Dispose();
                 }
             }
             //dispose unmanaged resources

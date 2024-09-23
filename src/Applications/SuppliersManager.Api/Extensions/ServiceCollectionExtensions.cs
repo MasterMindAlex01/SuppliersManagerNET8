@@ -1,17 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.IdGenerators;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
 using SuppliersManager.Api.Services;
 using SuppliersManager.Application.Interfaces.Services;
 using SuppliersManager.Application.Models.Settings;
-using SuppliersManager.Domain.Contracts;
-using SuppliersManager.Infrastructure.MongoDBDriver.Services;
+using SuppliersManager.Infrastructure.MongoDbEF.Contexts;
+using SuppliersManager.Infrastructure.MongoDbEF.Services;
 using System.Text;
 
 namespace SuppliersManager.Api.Extensions
@@ -38,16 +34,24 @@ namespace SuppliersManager.Api.Extensions
         }
 
         internal static IServiceCollection AddMongoDatabase(
-            this IServiceCollection services)
+            this IServiceCollection services, IConfiguration configuration)
         {
-            return services.AddSingleton(sp =>
+
+            var mongoDBSettings = configuration.GetSection("MongoDB").Get<MongoDBSettings>();
+
+            return services.AddDbContext<ApplicationMongoDbContext>(options =>
             {
-                var mongoSettings = sp.GetService<IOptions<MongoDBSettings>>();
-                var connectionString = mongoSettings!.Value.ConnectionURI;
-                var client = new MongoClient(connectionString);
-                var database = mongoSettings!.Value.DatabaseName;
-                return client.GetDatabase(database);
+                options.UseMongoDB(mongoDBSettings!.ConnectionURI ?? "", mongoDBSettings.DatabaseName ?? "");
             });
+            
+            //return services.AddSingleton(sp =>
+            //{
+            //    var mongoSettings = sp.GetService<IOptions<MongoDBSettings>>();
+            //    var connectionString = mongoSettings!.Value.ConnectionURI;
+            //    var client = new MongoClient(connectionString);
+            //    var database = mongoSettings!.Value.DatabaseName;
+            //    return client.GetDatabase(database);
+            //});
         }
 
         internal static IServiceCollection AddCurrentUserService(this IServiceCollection services)
@@ -98,9 +102,9 @@ namespace SuppliersManager.Api.Extensions
 
         internal static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ISupplierService, SupplierService>();
+            services.AddScoped<IAuthService, MongoEFAuthService>();
+            services.AddScoped<IUserService, MongoEFUserService>();
+            services.AddScoped<ISupplierService, MongoEFSupplierService>();
 
             return services;
         }

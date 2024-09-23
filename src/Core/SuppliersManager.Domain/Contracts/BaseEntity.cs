@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MongoDB.Bson;
 
 namespace SuppliersManager.Domain.Contracts
 {
     public class BaseEntity
     {
-        public string Id { get; set; } = null!;
+        public ObjectId Id { get; set; }
     }
 }

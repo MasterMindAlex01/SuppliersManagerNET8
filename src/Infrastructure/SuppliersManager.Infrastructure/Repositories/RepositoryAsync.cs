@@ -1,5 +1,6 @@
 ﻿
 
+using MongoDB.Bson;
 using MongoDB.Driver;
 using SuppliersManager.Application.Interfaces.Repositories;
 using SuppliersManager.Domain.Contracts;
@@ -15,6 +16,8 @@ namespace SuppliersManager.Infrastructure.MongoDBDriver.Repositories
             string className = typeof(T).Name.ToLower() + "s";
             _collection = database.GetCollection<T>(className);
         }
+
+        public IQueryable<T> Entities => _collection.AsQueryable();
 
         public async Task<T> AddAsync(T entity)
         {
@@ -32,7 +35,7 @@ namespace SuppliersManager.Infrastructure.MongoDBDriver.Repositories
             return await _collection.Find(_ => true).ToListAsync();
         }
 
-        public async Task<T> GetByIdAsync(string id)
+        public async Task<T?> GetByIdAsync(ObjectId id)
         {
             return await _collection.Find(x => x.Id == id).FirstOrDefaultAsync();
         }

@@ -1,10 +1,12 @@
-﻿using SuppliersManager.Domain.Contracts;
+﻿using MongoDB.Bson;
+using SuppliersManager.Domain.Contracts;
 
 namespace SuppliersManager.Application.Interfaces.Repositories
 {
     public interface IRepositoryAsync<T> where T : BaseEntity
     {
-        Task<T> GetByIdAsync(string id);
+        IQueryable<T> Entities { get; }
+        Task<T?> GetByIdAsync(ObjectId id);
 
         Task<List<T>> GetAllAsync();
 

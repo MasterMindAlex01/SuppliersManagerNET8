@@ -6,7 +6,7 @@ namespace SuppliersManager.Application.Interfaces.Repositories
 {
     public interface IUserRepository
     {
-        Task<User> GetUserByUserNameAsync(string username);
+        Task<User?> GetUserByUserNameAsync(string username);
         Task<PaginatedResult<UserResponse>> GetPagedResponseAsync(int pageNumber, int pageSize);
     }
 }
